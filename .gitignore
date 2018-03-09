@@ -1,0 +1,7 @@
+.DS_Store
+.idea/
+
+## File-based project format
+*.ipr
+*.iws
+*.iml
