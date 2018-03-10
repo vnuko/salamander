@@ -42,7 +42,7 @@ class Crawler
      */
     public function __construct($path, $config = array())
     {
-        $this->path = $path;
+        $this->path = $this->sanitizePath($path);
         $this->config = $config;
     }
 
@@ -55,6 +55,25 @@ class Crawler
         } catch (Exception $e) {
             $this->sendJSONResponse(false, array(), $e->getMessage());
         }
+    }
+
+    /**
+     * @param $path
+     * @return mixed|string
+     */
+    protected function sanitizePath($path) {
+        // sorry, we allow only alphanumeric characters, also should be safe against traversal vulnerability
+        $clean_path = preg_replace('/[^A-Za-z0-9\-\/]/', '', $path);
+
+        //remove all empty spaces
+        $clean_path = preg_replace('/\s+/', '', $clean_path);
+
+        //explode, remove empty, implode
+        $path_tokens = explode('/', $clean_path);
+        $path_tokens = array_filter($path_tokens, function($value) { return $value !== ''; });
+        $clean_path = implode('/', $path_tokens) . '/';
+
+        return $clean_path;
     }
 
     /**
