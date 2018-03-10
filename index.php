@@ -7,7 +7,9 @@ $path = isset($_GET['path']) ? $_GET['path'] : '';
 
 
 $crawler = new Crawler($path, array(
-    'root_folder' => 'pictures',
+    'images_dir' => 'photos',
+    'thumbnails_dir' => 'thumbnails',
+    'cache_dir' => 'cache',
     'limit' => 5
 ));
 
