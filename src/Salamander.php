@@ -55,7 +55,8 @@ class Salamander
         $this->config = array_unique(array_merge($this->config, $config), SORT_REGULAR);
     }
 
-    public function crawl() {
+    public function crawl()
+    {
         try {
             $this->initImagesFolder();
             $this->checkPathExists($this->path);
@@ -70,7 +71,8 @@ class Salamander
      * @param $path
      * @return mixed|string
      */
-    protected function sanitizePath($path) {
+    protected function sanitizePath($path)
+    {
         // sorry, we allow only alphanumeric characters, also should be safe against traversal vulnerability
         $clean_path = preg_replace('/[^A-Za-z0-9\-\/]/', '', $path);
 
@@ -89,7 +91,8 @@ class Salamander
      * @param $path
      * @return array
      */
-    protected function listMe($path) {
+    protected function listMe($path)
+    {
         $it = new DirectoryIterator($path);
 
         foreach ($it as $res) {
@@ -111,7 +114,8 @@ class Salamander
     /**
      * @return array
      */
-    protected function paginate() {
+    protected function paginate()
+    {
         $this->folders_count = count($this->folders);
         $this->files_count = count($this->files);
         $this->total_count = $this->folders_count + $this->files_count;
@@ -130,7 +134,8 @@ class Salamander
      * @param $param
      * @return mixed|null
      */
-    protected function getConfig($param) {
+    protected function getConfig($param)
+    {
         if ( isset($this->config[$param]) ) {
             return $this->config[$param];
         }
@@ -145,7 +150,8 @@ class Salamander
      * @return bool
      * @throws Exception
      */
-    protected function initImagesFolder() {
+    protected function initImagesFolder()
+    {
         $images_dir = $this->getConfig('images_dir');
 
         if ($images_dir) {
@@ -164,9 +170,15 @@ class Salamander
      * @param $path
      * @return string
      */
-    protected function getFullPath($path) {
+    protected function getFullPath($path)
+    {
         $images_dir = $this->getConfig('images_dir') . '/';
-        return $images_dir . $path;
+
+        if($path === '/') {
+            return $images_dir;
+        } else {
+            return $images_dir . $path;
+        }
     }
 
     /**
@@ -174,7 +186,8 @@ class Salamander
      * @return bool
      * @throws Exception
      */
-    protected function checkPathExists($path) {
+    protected function checkPathExists($path)
+    {
         $full_path = $this->getFullPath($path);
 
         if (!file_exists($full_path)) {
@@ -237,7 +250,8 @@ abstract class Res
     public $size;
     public $path;
 
-    function __construct(SplFileInfo $res, $path) {
+    function __construct(SplFileInfo $res, $path)
+    {
         $this->name = $res->getFilename();
         $this->timestamp = $this->getTimestamp($res);
         $this->type_name = $res->getType();
@@ -264,6 +278,14 @@ abstract class Res
         return $res->getCTime();
     }
 
+    protected function toUrl($string) {
+        if(substr($string, 0, 1) !== '/') {
+            return '/' . $string;
+        }
+
+        return $string;
+    }
+
     public abstract function toArray();
 }
 
@@ -282,7 +304,7 @@ class Dir extends Res
             'timestamp' => $this->timestamp,
             'type_name' => $this->type_name,
             'size' => $this->size,
-            'path' => $this->path . $this->filename
+            'path' => $this->toUrl($this->path . $this->name)
         );
     }
 }
@@ -315,7 +337,8 @@ class ImageFile extends Res
         $this->thumbnail = $thumbnailGenerator->generate($this);
     }
 
-    protected function getExifData() {
+    protected function getExifData()
+    {
         //TODO exif data extractir goes her.e..
     }
 
@@ -349,9 +372,9 @@ class ImageFile extends Res
             'timestamp' => $this->timestamp,
             'type_name' => $this->type_name,
             'size' => $this->size,
-            'path' => $this->path . $this->filename,
+            'path' => $this->toUrl($this->path . $this->name),
             'extension' => $this->extension,
-            'thumbnail' => $this->thumbnail
+            'thumbnail' => $this->toUrl($this->thumbnail)
         );
     }
 }
@@ -434,7 +457,7 @@ class ImageThumbnailGenerator extends ThumbnailGenerator
 
         // check if thumbnail exists
         if (file_exists('./'.$thumbnail_filepath)) {
-            return false;
+            return $thumbnail_filepath;
         }
 
         //check if supported file type
